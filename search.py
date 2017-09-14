@@ -62,6 +62,24 @@ class SearchProblem:
         util.raiseNotDefined()
 
 
+class Node:
+    def __init__(self, value = None, parent = None):
+        self.value = value
+        self.parent = parent
+
+    def getParent(self):
+        return self.parent
+
+    def getValue(self):
+        return self.value
+
+    def getLineage(self):
+        if self.parent is None:
+            return []
+        else:
+            return self.parent.getLineage() + [self]
+
+
 def tinyMazeSearch(problem):
     """
     Returns a sequence of moves that solves tinyMaze.  For any other maze, the
@@ -72,7 +90,7 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def depthFirstSearch(problem):
+def depthFirstSearch_dirty(problem):
     """
     Search the deepest nodes in the search tree first.
 
@@ -87,12 +105,83 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+   
+    start = problem.getStartState()
+    fringe, explored = util.Stack(), []
+
+    for nextNode in problem.getSuccessors(start):
+        fringe.push([nextNode, [nextNode[1]]])
+
+
+    while not fringe.isEmpty():
+        currentNode, actionPath = fringe.pop()
+        #actions.append(currentNode[1])
+        if problem.isGoalState(currentNode[0]):
+            print "tada!"
+            print actionPath
+            return actionPath
+        explored += currentNode
+        for successor in problem.getSuccessors(currentNode[0]):
+            if successor[0] not in explored:
+                fringe.push([successor, actionPath + [successor[1]]])
+                
+
+def depthFirstSearch(problem): 
+    startState = problem.getStartState()
+    startNode = Node([startState, None, None], None) 
+    fringe, explored = util.Stack(), set([]) 
+    # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
+    # explored contains visited STATES
+
+    for successor in problem.getSuccessors(startState):
+        fringe.push(Node(successor, parent = startNode))
+
+
+    while not fringe.isEmpty():
+        currentNode = fringe.pop()
+        #actions.append(currentNode[1])
+        if problem.isGoalState(currentNode.getValue()[0]):
+            lineage = currentNode.getLineage()
+            actions = []
+            for ancestor in lineage:
+                actions.append(ancestor.getValue()[1])
+            print actions
+            return actions
+
+        explored.add(currentNode.getValue()[0])
+        for successor in problem.getSuccessors(currentNode.getValue()[0]):
+            if successor[0] not in explored:
+                fringe.push(Node(successor, parent = currentNode))
+                
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    startState = problem.getStartState()
+    startNode = Node([startState, None, None], None) 
+    fringe, explored = util.Queue(), set([]) 
+    # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
+    # explored contains visited STATES
+
+    for successor in problem.getSuccessors(startState):
+        fringe.push(Node(successor, parent = startNode))
+
+
+    while not fringe.isEmpty():
+        currentNode = fringe.pop()
+        #actions.append(currentNode[1])
+        if problem.isGoalState(currentNode.getValue()[0]):
+            lineage = currentNode.getLineage()
+            actions = []
+            for ancestor in lineage:
+                actions.append(ancestor.getValue()[1])
+            print actions
+            return actions
+
+        explored.add(currentNode.getValue()[0])
+        for successor in problem.getSuccessors(currentNode.getValue()[0]):
+            if successor[0] not in explored:
+                fringe.push(Node(successor, parent = currentNode))
+                
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
