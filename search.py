@@ -149,7 +149,7 @@ def depthFirstSearch(problem):
             actions = []
             for ancestor in lineage:
                 actions.append(ancestor.getValue()[1])
-            #print actions
+            
             return actions
 
         explored.add(currentState)
