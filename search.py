@@ -188,6 +188,7 @@ def breadthFirstSearch(problem):
         explored.add(currentState)
         for successor in problem.getSuccessors(currentState):
             if successor[0] not in explored:
+                #print str(explored) + ' and ' + str(successor[0]) #for debugging
                 fringe.push(Node(successor, parent = currentNode))
                 
 
@@ -217,7 +218,7 @@ def uniformCostSearch(problem):
             actions = []
             for ancestor in lineage:
                 actions.append(ancestor.getValue()[1])
-            print actions
+            #print actions
             return actions
 
         explored.add(currentState)
@@ -258,7 +259,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             actions = []
             for ancestor in lineage:
                 actions.append(ancestor.getValue()[1])
-            print actions
+            #print actions
             return actions
 
         explored.add(currentNode.getValue()[0])
