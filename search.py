@@ -115,7 +115,7 @@ def depthFirstSearch_dirty(problem):
 
     while not fringe.isEmpty():
         currentNode, actionPath = fringe.pop()
-        #actions.append(currentNode[1])
+        
         if problem.isGoalState(currentNode[0]):
             print "tada!"
             print actionPath
@@ -133,23 +133,27 @@ def depthFirstSearch(problem):
     # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
     # explored contains visited STATES
 
+    if problem.isGoalState(startState):
+        return []
+
     for successor in problem.getSuccessors(startState):
         fringe.push(Node(successor, parent = startNode))
 
 
     while not fringe.isEmpty():
         currentNode = fringe.pop()
-        #actions.append(currentNode[1])
-        if problem.isGoalState(currentNode.getValue()[0]):
+        currentState = currentNode.getValue()[0]
+
+        if problem.isGoalState(currentState):
             lineage = currentNode.getLineage()
             actions = []
             for ancestor in lineage:
                 actions.append(ancestor.getValue()[1])
-            print actions
+            #print actions
             return actions
 
-        explored.add(currentNode.getValue()[0])
-        for successor in problem.getSuccessors(currentNode.getValue()[0]):
+        explored.add(currentState)
+        for successor in problem.getSuccessors(currentState):
             if successor[0] not in explored:
                 fringe.push(Node(successor, parent = currentNode))
                 
@@ -162,23 +166,27 @@ def breadthFirstSearch(problem):
     # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
     # explored contains visited STATES
 
+    if problem.isGoalState(startState):
+        return []
+
     for successor in problem.getSuccessors(startState):
         fringe.push(Node(successor, parent = startNode))
 
 
     while not fringe.isEmpty():
         currentNode = fringe.pop()
-        #actions.append(currentNode[1])
-        if problem.isGoalState(currentNode.getValue()[0]):
+        currentState = currentNode.getValue()[0]
+
+        if problem.isGoalState(currentState):
             lineage = currentNode.getLineage()
             actions = []
             for ancestor in lineage:
                 actions.append(ancestor.getValue()[1])
-            print actions
+            #print actions
             return actions
 
-        explored.add(currentNode.getValue()[0])
-        for successor in problem.getSuccessors(currentNode.getValue()[0]):
+        explored.add(currentState)
+        for successor in problem.getSuccessors(currentState):
             if successor[0] not in explored:
                 fringe.push(Node(successor, parent = currentNode))
                 
@@ -192,6 +200,9 @@ def uniformCostSearch(problem):
     # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
     # explored contains visited STATES
 
+    if problem.isGoalState(startState):
+        return []
+
     for successor in problem.getSuccessors(startState):
         totalPathCost = 0 + successor[2] # being at startNode takes 0 cost
         fringe.push(Node(successor, parent = startNode), totalPathCost)
@@ -199,8 +210,9 @@ def uniformCostSearch(problem):
 
     while not fringe.isEmpty():
         currentNode = fringe.pop()
-        #actions.append(currentNode[1])
-        if problem.isGoalState(currentNode.getValue()[0]):
+        currentState = currentNode.getValue()[0]
+        
+        if problem.isGoalState(currentState):
             lineage = currentNode.getLineage()
             actions = []
             for ancestor in lineage:
@@ -208,8 +220,8 @@ def uniformCostSearch(problem):
             print actions
             return actions
 
-        explored.add(currentNode.getValue()[0])
-        for successor in problem.getSuccessors(currentNode.getValue()[0]):
+        explored.add(currentState)
+        for successor in problem.getSuccessors(currentState):
             if successor[0] not in explored:
                 totalPathCost = currentNode.getValue()[2] + successor[2]
                 fringe.push(Node(successor, parent = currentNode), totalPathCost)
