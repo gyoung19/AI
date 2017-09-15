@@ -129,7 +129,7 @@ def depthFirstSearch_dirty(problem):
 def depthFirstSearch(problem): 
     startState = problem.getStartState()
     startNode = Node([startState, None, None], None) 
-    fringe, explored = util.Stack(), set([]) 
+    fringe, explored = util.Stack(), set([startState]) 
     # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
     # explored contains visited STATES
 
@@ -162,7 +162,7 @@ def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     startState = problem.getStartState()
     startNode = Node([startState, None, None], None) 
-    fringe, explored = util.Queue(), set([]) 
+    fringe, explored = util.Queue(), set([startState]) 
     # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
     # explored contains visited STATES
 
@@ -171,6 +171,7 @@ def breadthFirstSearch(problem):
 
     for successor in problem.getSuccessors(startState):
         fringe.push(Node(successor, parent = startNode))
+        explored.add(successor[0]) #?? not sure yet
 
 
     while not fringe.isEmpty():
@@ -185,10 +186,11 @@ def breadthFirstSearch(problem):
             #print actions
             return actions
 
-        explored.add(currentState)
+        #explored.add(currentState)
         for successor in problem.getSuccessors(currentState):
             if successor[0] not in explored:
                 #print str(explored) + ' and ' + str(successor[0]) #for debugging
+                explored.add(successor[0])
                 fringe.push(Node(successor, parent = currentNode))
                 
 
@@ -197,7 +199,8 @@ def uniformCostSearch(problem):
     "*** YOUR CODE HERE ***"
     startState = problem.getStartState()
     startNode = Node([startState, None, None], None) 
-    fringe, explored = util.PriorityQueue(), set([]) 
+    fringe, explored = util.PriorityQueue(), set([startState])  
+
     # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
     # explored contains visited STATES
 
@@ -206,26 +209,47 @@ def uniformCostSearch(problem):
 
     for successor in problem.getSuccessors(startState):
         totalPathCost = 0 + successor[2] # being at startNode takes 0 cost
-        fringe.push(Node(successor, parent = startNode), totalPathCost)
+        updatedSuccessor = [successor[0], successor[1], totalPathCost]
+        fringe.push(Node(updatedSuccessor, parent = startNode), totalPathCost)
+        explored.add(successor[0]) #?? not sure yet
 
 
     while not fringe.isEmpty():
         currentNode = fringe.pop()
         currentState = currentNode.getValue()[0]
         
+        
         if problem.isGoalState(currentState):
             lineage = currentNode.getLineage()
-            actions = []
+            actions = []            
             for ancestor in lineage:
                 actions.append(ancestor.getValue()[1])
-            #print actions
             return actions
-
-        explored.add(currentState)
+        
+        
+        #explored.add(currentState)
         for successor in problem.getSuccessors(currentState):
             if successor[0] not in explored:
                 totalPathCost = currentNode.getValue()[2] + successor[2]
-                fringe.push(Node(successor, parent = currentNode), totalPathCost)
+                updatedSuccessor = [successor[0], successor[1], totalPathCost]
+                print totalPathCost
+
+                """
+                # redundant
+                if problem.isGoalState(successor[0]):
+                    lineage = currentNode.getLineage()
+                    actions = []
+                    
+                    for ancestor in lineage:
+                        actions.append(ancestor.getValue()[1])
+
+                    actions.append(currentNode.getValue()[1])
+                    #print actions
+                    return actions
+                """
+
+                fringe.push(Node(updatedSuccessor, parent = currentNode), totalPathCost)
+                explored.add(successor[0])
     
 
 def nullHeuristic(state, problem=None):
@@ -249,6 +273,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         totalPathCost = 0 + successor[2] # being at startNode takes 0 cost
         totalCost = totalPathCost + heuristic(successor[0], problem)
         fringe.push(Node(successor, parent = startNode), totalCost)
+        explored.add(successor[0])
 
 
     while not fringe.isEmpty():
@@ -268,6 +293,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                 totalPathCost = currentNode.getValue()[2] + successor[2]
                 totalCost = totalPathCost + heuristic(successor[0], problem)
                 fringe.push(Node(successor, parent = currentNode), totalCost)
+                explored.add(successor[0])
     
 
 
