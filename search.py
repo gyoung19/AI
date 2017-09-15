@@ -181,36 +181,13 @@ def breadthFirstSearch(problem):
         for successor in problem.getSuccessors(currentNode.getValue()[0]):
             if successor[0] not in explored:
                 fringe.push(Node(successor, parent = currentNode))
-
+                
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    startState = problem.getStartState()
-    startNode = Node([startState, None, None], None) 
-    fringe, explored = util.PriorityQueue(), set([]) 
-    # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
-    # explored contains visited STATES
+    "*** YOUR CODE HERE ***"
+    util.raiseNotDefined()
 
-    for successor in problem.getSuccessors(startState):
-        fringe.push(Node(successor, parent = startNode), successor[2])
-
-
-    while not fringe.isEmpty():
-        currentNode = fringe.pop()
-        #actions.append(currentNode[1])
-        if problem.isGoalState(currentNode.getValue()[0]):
-            lineage = currentNode.getLineage()
-            actions = []
-            for ancestor in lineage:
-                actions.append(ancestor.getValue()[1])
-            print actions
-            return actions
-
-        explored.add(currentNode.getValue()[0])
-        for successor in problem.getSuccessors(currentNode.getValue()[0]):
-            if successor[0] not in explored:
-                fringe.push(Node(successor, parent = currentNode), successor[2])
-    
 def nullHeuristic(state, problem=None):
     """
     A heuristic function estimates the cost from the current state to the nearest
