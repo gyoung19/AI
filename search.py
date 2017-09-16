@@ -62,6 +62,7 @@ class SearchProblem:
         util.raiseNotDefined()
 
 
+# OUR OWN FUNCTIONS AND CLASSES
 class Node:
     def __init__(self, value = None, parent = None):
         self.value = value
@@ -80,6 +81,17 @@ class Node:
             return self.parent.getLineage() + [self]
 
 
+def getActionLineage(currentNode):
+    lineage = currentNode.getLineage()
+    actions = []            
+    for ancestor in lineage:
+        actions.append(ancestor.getValue()[1])
+
+    return actions
+
+# THE END
+
+
 def tinyMazeSearch(problem):
     """
     Returns a sequence of moves that solves tinyMaze.  For any other maze, the
@@ -90,7 +102,7 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def depthFirstSearch_dirty(problem):
+def depthFirstSearch_deprecated(problem):
     """
     Search the deepest nodes in the search tree first.
 
@@ -115,7 +127,7 @@ def depthFirstSearch_dirty(problem):
 
     while not fringe.isEmpty():
         currentNode, actionPath = fringe.pop()
-        #actions.append(currentNode[1])
+        
         if problem.isGoalState(currentNode[0]):
             print "tada!"
             print actionPath
@@ -128,65 +140,101 @@ def depthFirstSearch_dirty(problem):
 
 def depthFirstSearch(problem): 
     startState = problem.getStartState()
-    startNode = Node([startState, None, None], None) 
+    startNode = Node([startState, None, 0], None) 
     fringe, explored = util.Stack(), set([]) 
     # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
     # explored contains visited STATES
 
+    if problem.isGoalState(startState):
+        return []
+
     for successor in problem.getSuccessors(startState):
         fringe.push(Node(successor, parent = startNode))
-
+        
 
     while not fringe.isEmpty():
         currentNode = fringe.pop()
-        #actions.append(currentNode[1])
-        if problem.isGoalState(currentNode.getValue()[0]):
-            lineage = currentNode.getLineage()
-            actions = []
-            for ancestor in lineage:
-                actions.append(ancestor.getValue()[1])
-            print actions
-            return actions
+        currentState = currentNode.getValue()[0]
 
-        explored.add(currentNode.getValue()[0])
-        for successor in problem.getSuccessors(currentNode.getValue()[0]):
-            if successor[0] not in explored:
-                fringe.push(Node(successor, parent = currentNode))
-                
+        explored.add(currentState)
+
+        if problem.isGoalState(currentState):
+            return getActionLineage(currentNode)
+
+        else:
+            for successor in problem.getSuccessors(currentState):
+                if successor[0] not in explored:
+                    fringe.push(Node(successor, parent = currentNode))
+    
+    # it is implicitly assumed that failure cases return None
+
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     startState = problem.getStartState()
-    startNode = Node([startState, None, None], None) 
-    fringe, explored = util.Queue(), set([]) 
+    startNode = Node([startState, None, 0], None) 
+    fringe, exploredStates = util.Queue(), set([]) 
     # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
-    # explored contains visited STATES
+    # exploredStates contains visited STATES
+    fringeStates = set([startState])
+    # I don't like this, but ...
 
-    for successor in problem.getSuccessors(startState):
-        fringe.push(Node(successor, parent = startNode))
+    if problem.isGoalState(startState):
+        return []
+
+    fringe.push(startNode)
+
+    while not fringe.isEmpty():
+        currentNode = fringe.pop()
+        currentState = currentNode.getValue()[0]
+
+        fringeStates.remove(currentState)
+        exploredStates.add(currentState)
+
+        if problem.isGoalState(currentState):
+            return getActionLineage(currentNode)
+
+        else:
+            for successor in problem.getSuccessors(currentState):
+                successorState = successor[0]
+                if (successorState not in exploredStates) and (successorState not in fringeStates):
+                    fringe.push(Node(successor, parent = currentNode))
+                    fringeStates.add(successorState)
+
+    # it is implicitly assumed that failure cases return None                
+
+
+def uniformCostSearch(problem):
+    """Search the node of least total cost first."""
+    startState = problem.getStartState()
+    startNode = Node([startState, None, 0], None) 
+    fringe, exploredStates = util.PriorityQueue(), set([])  
+    
+
+    if problem.isGoalState(startState):
+        return []
+
+    fringe.push(startNode, 0)
 
 
     while not fringe.isEmpty():
         currentNode = fringe.pop()
-        #actions.append(currentNode[1])
-        if problem.isGoalState(currentNode.getValue()[0]):
-            lineage = currentNode.getLineage()
-            actions = []
-            for ancestor in lineage:
-                actions.append(ancestor.getValue()[1])
-            print actions
-            return actions
-
-        explored.add(currentNode.getValue()[0])
-        for successor in problem.getSuccessors(currentNode.getValue()[0]):
-            if successor[0] not in explored:
-                fringe.push(Node(successor, parent = currentNode))
+        currentState = currentNode.getValue()[0]
+        
+        if problem.isGoalState(currentState):
+            return getActionLineage(currentNode)
+        
+        if currentState not in exploredStates: 
+            exploredStates.add(currentState) 
+            
+            for successor in problem.getSuccessors(currentState):
+                successorState = successor[0]
+                totalPathCost = currentNode.getValue()[2] + successor[2]               
+                updatedSuccessor = [successor[0], successor[1], totalPathCost]    
                 
-
-def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+                fringe.push(Node(updatedSuccessor, parent = currentNode), totalPathCost)
+                
+                
 
 def nullHeuristic(state, problem=None):
     """
@@ -196,9 +244,111 @@ def nullHeuristic(state, problem=None):
     return 0
 
 def aStarSearch(problem, heuristic=nullHeuristic):
+    startState = problem.getStartState()
+    startCost = heuristic(startState, problem)
+    startNode = Node([startState, None, startCost], None) 
+    fringe, exploredStates = util.PriorityQueue(), set([])  
+
+    # variables not used (deprecated)
+    fringeStates = set([startState])
+    fringeCosts = dict({startState: startCost})
+    #
+
+    if problem.isGoalState(startState):
+        return []
+
+    fringe.push(startNode, startCost)
+
+    while not fringe.isEmpty():
+        currentNode = fringe.pop()
+        currentState = currentNode.getValue()[0]
+
+        if problem.isGoalState(currentState):
+            return getActionLineage(currentNode)
+
+
+        if currentState not in exploredStates:
+            exploredStates.add(currentState)
+        
+            for successor in problem.getSuccessors(currentState):
+                successorState = successor[0]
+                # SUBTLE HERE
+                totalPathCost = currentNode.getValue()[2] + successor[2] 
+                totalEstimatedCost = totalPathCost + heuristic(successorState, problem)
+
+                updatedSuccessor = [successor[0], successor[1], totalPathCost]
+                
+                fringe.push(Node(updatedSuccessor, parent = currentNode), totalEstimatedCost)
+                fringeStates.add(successorState)
+                fringeCosts[successorState] = totalPathCost
+
+
+def aStarSearch_old2(problem, heuristic=nullHeuristic):
+    startState = problem.getStartState()
+    startNode = Node([startState, None, 0], None) 
+    fringe, exploredStates = util.PriorityQueue(), set([startState])  
+    fringeStates = set([startState])
+
+    if problem.isGoalState(startState):
+        return []
+
+    fringe.push(startNode, 0)
+
+    while not fringe.isEmpty():
+        currentNode = fringe.pop()
+        currentState = currentNode.getValue()[0]
+
+        fringeStates.remove(currentState)
+        exploredStates.add(currentState)
+
+        if problem.isGoalState(currentState):
+            return getActionLineage(currentNode)
+        
+        for successor in problem.getSuccessors(currentState):
+            successorState = successor[0]
+            if (successorState not in exploredStates) and (successorState not in fringeStates):
+                totalPathCost = currentNode.getValue()[2] + successor[2] + heuristic(successorState, problem)
+                updatedSuccessor = [successor[0], successor[1], totalPathCost]
+                fringe.push(Node(updatedSuccessor, parent = currentNode), totalPathCost)
+                fringeStates.add(successorState)
+    
+
+def aStarSearch_old(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # T: So it seems heuristic functions take (state, problem)
+    #   and return the cost for that state.
+    startState = problem.getStartState()
+    startNode = Node([startState, None, 0], None) 
+    fringe, explored = util.PriorityQueue(), set([]) 
+    # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
+    # explored contains visited STATES
+
+    for successor in problem.getSuccessors(startState):
+        totalPathCost = 0 + successor[2] # being at startNode takes 0 cost
+        totalCost = totalPathCost + heuristic(successor[0], problem)
+        fringe.push(Node(successor, parent = startNode), totalCost)
+        explored.add(successor[0])
+
+
+    while not fringe.isEmpty():
+        currentNode = fringe.pop()
+        #actions.append(currentNode[1])
+        if problem.isGoalState(currentNode.getValue()[0]):
+            lineage = currentNode.getLineage()
+            actions = []
+            for ancestor in lineage:
+                actions.append(ancestor.getValue()[1])
+            #print actions
+            return actions
+
+        explored.add(currentNode.getValue()[0])
+        for successor in problem.getSuccessors(currentNode.getValue()[0]):
+            if successor[0] not in explored:
+                totalPathCost = currentNode.getValue()[2] + successor[2]
+                totalCost = totalPathCost + heuristic(successor[0], problem)
+                fringe.push(Node(successor, parent = currentNode), totalCost)
+                explored.add(successor[0])
+    
 
 
 # Abbreviations
