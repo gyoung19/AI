@@ -210,17 +210,19 @@ def uniformCostSearch(problem):
     startNode = Node([startState, None, 0], None) 
     fringe, exploredStates = util.PriorityQueue(), set([startState])  
     fringeStates = set([startState])
+    fringeCosts = dict({startState: 0})
 
     if problem.isGoalState(startState):
         return []
 
     fringe.push(startNode, 0)
 
+
     while not fringe.isEmpty():
         currentNode = fringe.pop()
         currentState = currentNode.getValue()[0]
         fringeStates.remove(currentState)
-        
+        fringeCosts.pop(currentState)
 
         if problem.isGoalState(currentState):
             #print "currentNode: " + str(currentState) + " " +  str(currentNode.getValue()[2])
@@ -231,13 +233,17 @@ def uniformCostSearch(problem):
 
         for successor in problem.getSuccessors(currentState):
             successorState = successor[0]
-            #if (successorState not in exploredStates) and (successorState not in fringeStates):
-            if successorState not in exploredStates and successorState not in fringeStates:
-                totalPathCost = currentNode.getValue()[2] + successor[2]
-                updatedSuccessor = [successor[0], successor[1], totalPathCost]
-                #print "updatedSuccessor: " + str(updatedSuccessor)
+            totalPathCost = currentNode.getValue()[2] + successor[2]
+            
+            if successorState not in exploredStates:
+                # if successor is on fringe and its cost is higher, then just discard it
+                if successorState in fringeStates and fringeCosts[successorState] <= totalPathCost:
+                    continue
+                updatedSuccessor = [successor[0], successor[1], totalPathCost]    
+                
                 fringe.push(Node(updatedSuccessor, parent = currentNode), totalPathCost)
                 fringeStates.add(successorState)
+                fringeCosts[successorState] = totalPathCost
             # else if child.state is in frontier with higher past-cost then replace that frontier node with child
                 # identify the pre-existent node on the fringe
                 # replace it with this successor
@@ -253,6 +259,50 @@ def nullHeuristic(state, problem=None):
     return 0
 
 def aStarSearch(problem, heuristic=nullHeuristic):
+    startState = problem.getStartState()
+    startNode = Node([startState, None, 0], None) 
+    fringe, exploredStates = util.PriorityQueue(), set([startState])  
+    fringeStates = set([startState])
+    fringeCosts = dict({startState: heuristic(startState, problem)})
+
+    if problem.isGoalState(startState):
+        return []
+
+    fringe.push(startNode, 0)
+
+    cnt = 1
+    while not fringe.isEmpty():
+        currentNode = fringe.pop()
+        currentState = currentNode.getValue()[0]
+        print "cnt = %d: currentState %s" % (cnt, currentState)
+        cnt += 1
+
+        if problem.isGoalState(currentState):
+            #print "currentNode: " + str(currentState) + " " +  str(currentNode.getValue()[2])
+            return getActionLineage(currentNode)
+
+        fringeStates.remove(currentState)
+        fringeCosts.pop(currentState)
+
+        if currentState not in exploredStates:
+            exploredStates.add(currentState)
+
+        if problem.isGoalState(currentState):
+            return getActionLineage(currentNode)
+        
+        for successor in problem.getSuccessors(currentState):
+            successorState = successor[0]
+            totalPathCost = currentNode.getValue()[2] + successor[2] + heuristic(successorState, problem)
+
+            if successorState not in exploredStates:
+                if successorState in fringeStates and fringeCosts[successorState] <= totalPathCost:
+                    continue
+                updatedSuccessor = [successor[0], successor[1], totalPathCost]
+                fringe.push(Node(updatedSuccessor, parent = currentNode), totalPathCost)
+                fringeStates.add(successorState)
+                fringeCosts[successorState] = totalPathCost
+
+def aStarSearch_old2(problem, heuristic=nullHeuristic):
     startState = problem.getStartState()
     startNode = Node([startState, None, 0], None) 
     fringe, exploredStates = util.PriorityQueue(), set([startState])  
