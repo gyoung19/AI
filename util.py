@@ -216,6 +216,9 @@ class PriorityQueue:
     def contains(self,item):
         return item in self.list
 
+    def str(self):
+        return str(self.heap)
+
 
 class PriorityQueueWithFunction(PriorityQueue):
     """
