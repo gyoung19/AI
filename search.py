@@ -219,20 +219,29 @@ def uniformCostSearch(problem):
     while not fringe.isEmpty():
         currentNode = fringe.pop()
         currentState = currentNode.getValue()[0]
-
         fringeStates.remove(currentState)
-        exploredStates.add(currentState)
+        
 
         if problem.isGoalState(currentState):
+            #print "currentNode: " + str(currentState) + " " +  str(currentNode.getValue()[2])
             return getActionLineage(currentNode)
         
+        if currentState not in exploredStates:
+            exploredStates.add(currentState)
+
         for successor in problem.getSuccessors(currentState):
             successorState = successor[0]
-            if (successorState not in exploredStates) and (successorState not in fringeStates):
+            #if (successorState not in exploredStates) and (successorState not in fringeStates):
+            if successorState not in exploredStates and successorState not in fringeStates:
                 totalPathCost = currentNode.getValue()[2] + successor[2]
                 updatedSuccessor = [successor[0], successor[1], totalPathCost]
+                #print "updatedSuccessor: " + str(updatedSuccessor)
                 fringe.push(Node(updatedSuccessor, parent = currentNode), totalPathCost)
                 fringeStates.add(successorState)
+            # else if child.state is in frontier with higher past-cost then replace that frontier node with child
+                # identify the pre-existent node on the fringe
+                # replace it with this successor
+
                 
     
 
