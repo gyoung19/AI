@@ -288,6 +288,17 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        
+        # self.cornersLeft = [*self.corners] # this seems to work only in Python 3.x
+        self.cornersLeft = self.corners
+        """
+        this problem's state must contain:
+        - position
+        - cornersLeft
+        """
+        #print self.cornersLeft
+        self.startingState = (self.startingPosition, self.cornersLeft)
+        #print self.startingState
 
     def getStartState(self):
         """
@@ -295,14 +306,26 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.startingState
+        
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        """
+        cornersLeft = state[1]
+        print cornersLeft
+        currentPosition = state[0]
+        if currentPosition in cornersLeft:
+            cornersLeft.remove(currentPosition) # there must be a simpler way
+        return not cornersLeft
+        """
+        currentPosition, cornersLeft = state
+        #print "isGoalState? %s" % str(state)
+        cornersNowLeft = tuple(c for c in cornersLeft if c != currentPosition)
+        return not cornersNowLeft
 
     def getSuccessors(self, state):
         """
@@ -325,8 +348,27 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            currentPosition, cornersLeft = state
+            x, y = currentPosition
+            #print "getSuccessors ... state = %s" % str(state)
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
+
+            if not hitsWall:
+                successorPosition = (nextx, nexty)
+                """
+                if successorPosition in cornersLeft:
+                    cornersLeft.remove(state)
+                """
+                cornersNowLeft = tuple(c for c in cornersLeft if c != currentPosition)
+                #cornersNowLeft = cornersLeft
+                successorState = (successorPosition, cornersNowLeft)
+                successor = [successorState, action, 1]
+                successors.append(successor)
 
         self._expanded += 1 # DO NOT CHANGE
+        #print successors
         return successors
 
     def getCostOfActions(self, actions):

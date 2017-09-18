@@ -141,7 +141,7 @@ def depthFirstSearch_deprecated(problem):
 def depthFirstSearch(problem): 
     startState = problem.getStartState()
     startNode = Node([startState, None, 0], None) 
-    fringe, explored = util.Stack(), set([]) 
+    fringe, explored = util.Stack(), set() 
     # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
     # explored contains visited STATES
 
@@ -173,11 +173,9 @@ def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     startState = problem.getStartState()
     startNode = Node([startState, None, 0], None) 
-    fringe, exploredStates = util.Queue(), set([]) 
+    fringe, exploredStates = util.Queue(), set() 
     # fringe contains Node objects, whose getValue() gives [state, action, stepcost]
     # exploredStates contains visited STATES
-    fringeStates = set([startState])
-    # I don't like this, but ...
 
     if problem.isGoalState(startState):
         return []
@@ -188,18 +186,16 @@ def breadthFirstSearch(problem):
         currentNode = fringe.pop()
         currentState = currentNode.getValue()[0]
 
-        fringeStates.remove(currentState)
-        exploredStates.add(currentState)
-
         if problem.isGoalState(currentState):
             return getActionLineage(currentNode)
 
-        else:
+        if currentState not in exploredStates: 
+            exploredStates.add(currentState) 
+
             for successor in problem.getSuccessors(currentState):
                 successorState = successor[0]
-                if (successorState not in exploredStates) and (successorState not in fringeStates):
+                if successorState not in exploredStates:
                     fringe.push(Node(successor, parent = currentNode))
-                    fringeStates.add(successorState)
 
     # it is implicitly assumed that failure cases return None                
 
@@ -208,7 +204,7 @@ def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     startState = problem.getStartState()
     startNode = Node([startState, None, 0], None) 
-    fringe, exploredStates = util.PriorityQueue(), set([])  
+    fringe, exploredStates = util.PriorityQueue(), set()  
     
 
     if problem.isGoalState(startState):
@@ -247,7 +243,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     startState = problem.getStartState()
     startCost = heuristic(startState, problem)
     startNode = Node([startState, None, startCost], None) 
-    fringe, exploredStates = util.PriorityQueue(), set([])  
+    fringe, exploredStates = util.PriorityQueue(), set()  
 
     # variables not used (deprecated)
     fringeStates = set([startState])
