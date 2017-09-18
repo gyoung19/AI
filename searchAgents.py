@@ -385,8 +385,110 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
+def manhattanDistance(a, b):
+    return abs(a[0]-b[0]) + abs(a[1]-b[1])
+
+
+def findNearestCorner(currentPosition, corners, problem):
+    shortestDistance = problem.walls.height + problem.walls.width # MAX
+    nearestCorner = None
+
+    for corner in corners:
+        givenDistance = manhattanDistance(currentPosition, corner)
+        if givenDistance < shortestDistance:
+            shortestDistance = givenDistance
+            nearestCorner = corner
+
+    return nearestCorner, shortestDistance
+
+
+def findFarthestCorner(currentPosition, corners, problem):
+    longestDistance = 0 #min
+    farthestCorner = None
+
+    for corner in corners:
+        givenDistance = manhattanDistance(currentPosition, corner)
+        if givenDistance > longestDistance:
+            longestDistance = givenDistance
+            farthestCorner = corner
+
+    return farthestCorner, longestDistance
+
 
 def cornersHeuristic(state, problem):
+    """
+    NEW STRATEGY:
+    h(n) = manhattanDiff(n to the nearest goal) + manhattanDiffs among the other goals (perimeter in a sense)
+    that is, 
+    h(n) = optimistic estimate of the distance to the nearest food + 
+            optimistic estimate of the total distance of traversing all the remaining food
+    """
+    corners = problem.corners # These are the corner coordinates
+    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+    currentPosition, cornersLeft = state
+
+    nearestCorner, distanceNearestCorner = findNearestCorner(currentPosition, cornersLeft, problem)
+    farthestNextCorner, distanceFarthestNextCorner = findFarthestCorner(nearestCorner, cornersLeft, problem)
+
+    """ 
+    # well this actually may not be the perimeter. the corners are unordered.
+    # get manhattan perimeter of a polygon whose points are the corners left
+    perimeter = 0
+    for idx in xrange(0, len(cornersLeft)-1):
+        perimeter += manhattanDistance(cornersLeft[idx], cornersLeft[idx+1])
+
+    return perimeter
+    """
+
+    return distanceNearestCorner + distanceFarthestNextCorner
+
+
+def cornersHeuristic_perimeter(state, problem):
+    """
+    NEW STRATEGY:
+    h(n) = manhattanDiff(n to the nearest goal) + manhattanDiffs among the other goals (perimeter in a sense)
+    that is, 
+    h(n) = optimistic estimate of the distance to the nearest food + 
+            optimistic estimate of the total distance of traversing all the remaining food
+    """
+    corners = problem.corners # These are the corner coordinates
+    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+    currentPosition, cornersLeft = state
+
+    nearestCorner, distanceNearestCorner = findNearestCorner(currentPosition, cornersLeft, problem)
+    # well this actually may not be the perimeter, if the corners are unordered.
+    # get manhattan perimeter of a polygon whose points are the corners left
+    perimeter = 0
+    for idx in xrange(0, len(cornersLeft)-1):
+        perimeter += manhattanDistance(cornersLeft[idx], cornersLeft[idx+1])
+
+    return perimeter
+
+
+
+
+def cornersHeuristic_maybe_inconsistent(state, problem):
+    corners = problem.corners # These are the corner coordinates
+    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+
+    # strategy : the closer to every corner, the better it is
+    # we should be also guided by the information of cornersLeft
+    currentPosition, cornersLeft = state
+    x, y = currentPosition
+    manhattanDiff = 0
+    euclidianDiff = 0
+
+    for corner in cornersLeft:
+        manhattanDiff += manhattanDistance(currentPosition, corner) 
+        #euclidianDiff += math.sqrt((abs(x-corner[0])**2) + (abs(y-corner[1])**2))
+    
+    # this may not be consistent, because it overestimates the cost
+    # in some cases where all the food palettes are "on a single path"
+    return manhattanDiff
+    #return euclidianDiff
+
+
+def cornersHeuristic_greedy_naive(state, problem):
     """
     A heuristic for the CornersProblem that you defined.
 
@@ -406,16 +508,15 @@ def cornersHeuristic(state, problem):
     # we should be also guided by the information of cornersLeft
     currentPosition, cornersLeft = state
     x, y = currentPosition
-    manhattanDiff = 0
-    euclidianDiff = 0
 
-    for corner in cornersLeft:
-        manhattanDiff += abs(x-corner[0]) + abs(y-corner[1])
-        euclidianDiff += math.sqrt((abs(x-corner[0])**2) + (abs(y-corner[1])**2))
-    
+
+    nearestCorner, manhattanDiff = findNearestCorner(currentPosition, cornersLeft, problem)
+    # manhattanDiff = abs(x-nearestCorner[0]) + abs(y-nearestCorner[1])
+    #euclidianDiff = math.sqrt((abs(x-corner[0])**2) + (abs(y-corner[1])**2))
     
     return manhattanDiff
     #return euclidianDiff
+
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
