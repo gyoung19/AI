@@ -377,6 +377,7 @@ def findFarthestCorner(currentPosition, corners, problem):
 
 
 ## SHOULD DOUBLE CHECK IF THIS IS CONSISTENT 
+## This may be consistent only for Corners problem
 #def cornersHeuristic_totalTraversal(state, problem)
 def cornersHeuristic_totalTraversal(state, problem):
     """
@@ -521,11 +522,9 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    #print foodGrid.asList()
-    #greedy
+
     optimisticTraversalDistance = findNearestFood(position, foodGrid, problem)
-    #print nearestFood, manhattanDiff
+    
     return optimisticTraversalDistance
 
 
@@ -548,7 +547,6 @@ def findNearestFood(position, foodGrid, problem):
     nearestFood = None
     foodLeft = foodGrid.asList()
     
-
     nearestFood, distanceNearestFood = findNearestCorner(position, foodLeft, problem)
     farthestNextFood, distanceFarthestNextFood = findFarthestCorner(nearestFood, foodLeft, problem)
 
@@ -558,18 +556,18 @@ def findNearestFood(position, foodGrid, problem):
 def findNearestFood_greedy(position, foodGrid, problem):
     shortestDistance = problem.walls.height + problem.walls.width # MAX
     nearestFood = None
-    #print position
-    #print foodGrid
+    
     for food in foodGrid.asList():
-        #print food
         givenDistance = manhattanDistance(position, food)
-        #print givenDistance
         if givenDistance < shortestDistance:
             shortestDistance = givenDistance
             nearestFood = food
+
     if nearestFood == None:
         shortestDistance = 0
+
     return nearestFood, shortestDistance
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -599,10 +597,9 @@ class ClosestDotSearchAgent(SearchAgent):
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
 
-        "*** YOUR CODE HERE ***"
-        nearestFood, shortestDistance = findNearestFood_greedy(startPosition, food, problem)
+        nearestFood, distance = findNearestFood_greedy(startPosition, food, problem)
         return mazePath(startPosition, nearestFood, gameState)
-        util.raiseNotDefined()
+        
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -633,10 +630,7 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         complete the problem definition.
         """
         x,y = state
-
-        "*** YOUR CODE HERE ***"
-        
-        isGoal = state == self.goal
+        isGoal = (state == self.goal)
 
         # For display purposes only
         if isGoal and self.visualize:
@@ -647,7 +641,7 @@ class AnyFoodSearchProblem(PositionSearchProblem):
                     __main__._display.drawExpandedCells(self._visitedlist) #@UndefinedVariable
 
         return isGoal
-        util.raiseNotDefined()
+
 
 def mazeDistance(point1, point2, gameState):
     """
@@ -664,6 +658,8 @@ def mazeDistance(point1, point2, gameState):
     assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
     prob = PositionSearchProblem(gameState, start=point1, goal=point2, warn=False, visualize=False)
     return len(search.bfs(prob))
+
+
 def mazePath(point1, point2, gameState):
     x1, y1 = point1
     x2, y2 = point2
