@@ -377,7 +377,8 @@ def findFarthestCorner(currentPosition, corners, problem):
 
 
 ## SHOULD DOUBLE CHECK IF THIS IS CONSISTENT 
-def cornersHeuristic(state, problem):
+#def cornersHeuristic_totalTraversal(state, problem)
+def cornersHeuristic_totalTraversal(state, problem):
     """
     desiderata: current position, the total straight-line traversal among nearest corners
     STRATEGY:
@@ -403,12 +404,16 @@ def cornersHeuristic(state, problem):
     return distanceNearestCorner + traversingDistance
 
 
-def cornersHeuristic_twoPointEstimate(state, problem):
+#def cornersHeuristic_twoPointEstimate(state, problem)
+def cornersHeuristic(state, problem):
     """
     desiderata: the nearest corner from the current position, the farthest corner from that corner
     STRATEGY:
     h(n) = optimistic estimate of the distance to the nearest food + 
             the minimum distance from that food to the farthest food left
+
+    This heuristic is more optimistic than cornersHeuristic_totalTraversal.
+    Yet I am not sure if h_totalTraversal is really consistent.
     """
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
