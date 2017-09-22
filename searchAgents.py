@@ -348,6 +348,9 @@ def manhattanDistance(a, b):
 
 
 def findNearestCorner(currentPosition, corners, problem):
+    if not corners:
+        return None, 0
+
     shortestDistance = problem.walls.height + problem.walls.width # MAX
     nearestCorner = None
 
@@ -373,6 +376,7 @@ def findFarthestCorner(currentPosition, corners, problem):
     return farthestCorner, longestDistance
 
 
+## SHOULD DOUBLE CHECK IF THIS IS CONSISTENT 
 def cornersHeuristic(state, problem):
     """
     desiderata: current position, the total straight-line traversal among nearest corners
@@ -516,11 +520,38 @@ def foodHeuristic(state, problem):
     "*** YOUR CODE HERE ***"
     #print foodGrid.asList()
     #greedy
-    nearestFood, manhattanDiff = findNearestFood(position, foodGrid, problem)
+    optimisticTraversalDistance = findNearestFood(position, foodGrid, problem)
     #print nearestFood, manhattanDiff
-    return manhattanDiff
+    return optimisticTraversalDistance
 
+
+""" 
+Basically a variant of "cornersHeuristic_twoPointEstimate" defined above.
+Let's double-check if this is really consistent,
+although I feel that it should be. 
+The optimal path ?= one in which we visit the nearest food piece FIRST
+                    and then traverse to the farthest remaining food?
+"""
 def findNearestFood(position, foodGrid, problem):
+    """
+    desiderata: the nearest food from the current position, the remaining food piece farthest from the current nearest food piece
+    STRATEGY:
+    h(n) = optimistic estimate of the distance to the nearest food + 
+            the minimum distance from that food to the farthest food left
+    """
+
+    shortestDistance = problem.walls.height + problem.walls.width # MAX
+    nearestFood = None
+    foodLeft = foodGrid.asList()
+    
+
+    nearestFood, distanceNearestFood = findNearestCorner(position, foodLeft, problem)
+    farthestNextFood, distanceFarthestNextFood = findFarthestCorner(nearestFood, foodLeft, problem)
+
+    return distanceNearestFood + distanceFarthestNextFood
+
+
+def findNearestFood_greedy(position, foodGrid, problem):
     shortestDistance = problem.walls.height + problem.walls.width # MAX
     nearestFood = None
     #print position
