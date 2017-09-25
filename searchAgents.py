@@ -48,11 +48,6 @@ class GoWestAgent(Agent):
         else:
             return Directions.STOP
 
-#######################################################
-# This portion is written for you, but will only work #
-#       after you fill in parts of search.py          #
-#######################################################
-
 class SearchAgent(Agent):
     """
     This very general search agent finds a path using a supplied search
@@ -235,22 +230,6 @@ class StayWestSearchAgent(SearchAgent):
         costFn = lambda pos: 2 ** pos[0]
         self.searchType = lambda state: PositionSearchProblem(state, costFn)
 
-def manhattanHeuristic(position, problem, info={}):
-    "The Manhattan distance heuristic for a PositionSearchProblem"
-    xy1 = position
-    xy2 = problem.goal
-    return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
-
-def euclideanHeuristic(position, problem, info={}):
-    "The Euclidean distance heuristic for a PositionSearchProblem"
-    xy1 = position
-    xy2 = problem.goal
-    return ( (xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5
-
-#####################################################
-# This portion is incomplete.  Time to write code!  #
-#####################################################
-
 class CornersProblem(search.SearchProblem):
     """
     This search problem finds paths through all four corners of a layout.
@@ -343,8 +322,22 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
+
+
 def manhattanDistance(a, b):
     return abs(a[0]-b[0]) + abs(a[1]-b[1])
+
+def manhattanHeuristic(position, problem, info={}):
+    "The Manhattan distance heuristic for a PositionSearchProblem"
+    xy1 = position
+    xy2 = problem.goal
+    return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+
+def euclideanHeuristic(position, problem, info={}):
+    "The Euclidean distance heuristic for a PositionSearchProblem"
+    xy1 = position
+    xy2 = problem.goal
+    return ( (xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5
 
 
 def findNearestCorner(currentPosition, corners, problem):
@@ -378,7 +371,7 @@ def findFarthestCorner(currentPosition, corners, problem):
 
 ## SHOULD DOUBLE CHECK IF THIS IS CONSISTENT 
 ## This may be consistent only for Corners problem
-#def cornersHeuristic_totalTraversal(state, problem)
+# def cornersHeuristic_totalTraversal(state, problem)
 def cornersHeuristic_totalTraversal(state, problem):
     """
     desiderata: current position, the total straight-line traversal among nearest corners
@@ -405,7 +398,7 @@ def cornersHeuristic_totalTraversal(state, problem):
     return distanceNearestCorner + traversingDistance
 
 
-#def cornersHeuristic_twoPointEstimate(state, problem)
+# def cornersHeuristic_twoPointEstimate(state, problem)
 def cornersHeuristic(state, problem):
     """
     desiderata: the nearest corner from the current position, the farthest corner from that corner
@@ -413,7 +406,6 @@ def cornersHeuristic(state, problem):
     h(n) = optimistic estimate of the distance to the nearest food + 
             the minimum distance from that food to the farthest food left
     This heuristic is more optimistic than cornersHeuristic_totalTraversal.
-    Yet I am not sure if h_totalTraversal is really consistent.
     """
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
