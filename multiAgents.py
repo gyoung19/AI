@@ -77,10 +77,22 @@ class ReflexAgent(Agent):
         if (action is "Stop"):
             return -1000
         bonus = 0
-        shortestDistance = currentGameState.getWalls().height + successorGameState.getWalls().width # MAX
+
+        newGhostPositions = [ghostState.getPosition() for ghostState in newGhostStates]
+        closestGhostDistance = currentGameState.getWalls().height + currentGameState.getWalls().width # MAX
+        #print newGhostPositions
+        for position in newGhostPositions:
+            givenGhostDistance=manhattanDistance(newPos,position)
+            if givenGhostDistance < closestGhostDistance:
+                closestGhostDistance = givenGhostDistance
+        #deincentivize only if ghost is within two moves
+        if closestGhostDistance < 3:
+            bonus -= 100
+        shortestDistance = currentGameState.getWalls().height + currentGameState.getWalls().width # MAX
         farthestDistance = 0 #MIN
         nearestFood = None
         farthestFood = None
+        #for loop finds the nearest distance to food
         for food in newFood.asList():
         #print food
             givenDistance = manhattanDistance(newPos, food)
@@ -91,10 +103,12 @@ class ReflexAgent(Agent):
             if givenDistance > farthestDistance:
                 farthestDistance = givenDistance
                 farthestFood = food
+        #incentivize the eating of a food pellet
         if (newFood.asList() < currentGameState.getFood().asList()):
             bonus = 100
-        #print newGhostStates
         #print successorGameState.getScore()-shortestDistance + bonus        
+
+        #Pacman is currently incentivized to go for the nearest food and eat it unless it is close to a ghost
         return successorGameState.getScore()-shortestDistance + bonus
 
 def scoreEvaluationFunction(currentGameState):
@@ -150,8 +164,52 @@ class MinimaxAgent(MultiAgentSearchAgent):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        action = minimax(self,gameState,self.depth,0)
+        return action
+            
+        #util.raiseNotDefined()
 
+def minimax(self, gameState, depth, agentIndex):
+    #pacman's turn
+    numAgents = gameState.getNumAgents()
+    #resets to pacman's turn after a number of ghost turns
+    if agentIndex%numAgents is 0:
+        agentIndex = 0
+
+    if agentIndex is 0:
+        pacActions = gameState.getLegalActions(0)
+        #returns evaluation at depth limit or leaves
+        if len(pacActions) is 0:
+            return self.evaluationFunction(gameState)
+        if depth is 0:
+            return self.evaluationFunction(gameState)
+        else:
+            children = [gameState.generateSuccessor(0,action) for action in pacActions]    
+            values = [minimax(self,child,depth,1) for child in children]
+        Max = max(values)
+        #returns an action from initial node, value from anywhere else
+        if depth is self.depth:
+            return pacActions[values.index(Max)]
+        else:
+            return Max
+
+    #ghosts' turns
+    else:
+        ghostActions = gameState.getLegalActions(agentIndex)
+        #return for leaves
+        if len(ghostActions) is 0:
+            return self.evaluationFunction(gameState)
+        ghostChildren = [gameState.generateSuccessor(agentIndex,action) for action in ghostActions]
+        #checks if next turn should be pacman's and decrements depth accordingly
+        if agentIndex is numAgents-1:
+            depth = depth-1
+        ghostValues = [minimax(self,child,depth,agentIndex+1) for child in ghostChildren]
+        Min = min(ghostValues)
+        return Min
+            
+            
+       
+        
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
       Your minimax agent with alpha-beta pruning (question 3)
